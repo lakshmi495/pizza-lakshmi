@@ -18,7 +18,7 @@ server.post('/api/messages', connector.listen());
 
 
 var bot = new builder.UniversalBot(connector, function (session) {
-    session.send("Welcome to pizza ordering bot");
+
     session.beginDialog("Order");
 });
 
