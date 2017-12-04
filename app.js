@@ -112,11 +112,7 @@ function(session,results){
 
 }
 ]).triggerAction({
-    matches: 'PizzaOrdering',
-    confirmPrompt: "This will cancel the ordering. Are you sure?"
-}).cancelAction('cancelpizza', "pizza order canceled.", {
-    matches: /^(cancel|nevermind)/i,
-    confirmPrompt: "Are you sure?"
+    matches: 'PizzaOrdering'
 });
 
 
@@ -174,9 +170,5 @@ function(session,results){
 
 }
 ]).triggerAction({
-    matches: 'PizzaOrdering',
-    confirmPrompt: "This will cancel the ordering. Are you sure?"
-}).cancelAction('cancelpizza', "pizza order canceled.", {
-    matches: /^(cancel|nevermind)/i,
-    confirmPrompt: "Are you sure?"
+    matches: 'PizzaOrdering'
 });
