@@ -115,30 +115,23 @@ bot.dialog("Order",[
     var order = session.dialogData.order
 
             if (results.response) {
-              var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza"];
-              if(array.indexOf(results.response)!=-1){
+              //var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza"];
+              //if(array.indexOf(results.response)!=-1){
                  pizzakind=results.response;
                  builder.Prompts.number(session,"how many of them would you like to order?");
-              }
-              else{
+              //}
+             /* else{
                 var msg="session cancelled due to wrong response."
                 session.endConversation(msg);
-              }
+              }*/
   }
 },
 function(session,results){
   var order = session.dialogData.order;
           if (results.response) {
-            if (isNaN(results.response)) {
-              var msg="session cancelled due to wrong response."
-              session.endConversation(msg);
-}
-else{
    quantity=results.response;
    builder.Prompts.time(session,"when do you prefer your order to be delivered?");
 }
-}
-
 
 
 },
