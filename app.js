@@ -26,41 +26,6 @@ var luisAppUrl = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/eafd
 
 bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
 
-bot.dialog("LuisOrder",{
-  function(session,args,next){
-    var intent=args.intent;
-    console.log("intent",intent);
-    var pizzakind=builder.EntityRecognizer.findEntity(intent.entities,'pizzaKind');
-    console.log("pizzakind : ",pizzakind);
-    var quantity=builder.EntityRecognizer.parseNumber(intent.entities,'number');
-    console.log("quantity : ",quantity);
-    var date=builder.EntityRecognizer.findEntity(intent.entities,'builtin.datetimeV2.date');
-    console.log("date : ",date);
-    console.log(intent);
-    var order= session.dialogData.order ={
-      pizzakind: pizzakind ? pizzakind.entity : null,
-      quantity: quantity ? quantity : null,
-      date : date ? date.resolution.values[0] : null
-    }
-    console.log(order.pizzakind);
-    console.log(order.quantity);
-    console.log(order.date);
-    var obj =order.date;
-    if(obj){
-      var result = Object.keys(obj).map(function(key) {
-        return [ obj[key]];
-      });
-      console.log(result[2]);
-      order.date=result[2];
-    }
-    session.send(`Order confirmed. Order details: <br/>Type: ${order.pizzakind} <br/>quantity: ${order.quantity} <br/> date:${order.date} `);
-    session.endDialog();
-
-  }
-}).triggerAction({
-    matches: 'PizzaOrdering'
-});
-
 bot.dialog("OrderPizza",[
   function(session,args,next){
     var intent=args.intent;
@@ -138,8 +103,13 @@ function(session,results){
 
 }
 ]).triggerAction({
-    matches: 'PizzaOrdering'
-})
+    matches: 'PizzaOrdering',
+    confirmPrompt: "This will cancel the ordering. Are you sure?"
+}).cancelAction('cancelpizza', "pizza order canceled.", {
+    matches: /^(cancel|nevermind)/i,
+    confirmPrompt: "Are you sure?"
+});
+
 
 
 bot.dialog("Order",[
