@@ -102,10 +102,7 @@ function(session,results){
   session.endDialog();
 
 }
-]).triggerAction({
-    matches: 'PizzaOrdering'
-});
-
+]);
 
 bot.dialog("Order",[
   function(session){
@@ -160,6 +157,4 @@ function(session,results){
   session.endDialog();
 
 }
-]).triggerAction({
-    matches: 'PizzaOrdering'
-});
+]);
