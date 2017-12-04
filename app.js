@@ -66,37 +66,28 @@ bot.dialog("OrderPizza",[
     function(session,results,next){
     var order = session.dialogData.order
             if (results.response) {
-              var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza"];
-              if(array.indexOf(results.response)!=-1){
+              //var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza","frozen pizza","spicy chicken","large","small"];
+              //if(array.indexOf(results.response)!=-1){
                 order.pizzakind=results.response;
-                if(!order.quantity){
-                  builder.Prompts.number(session,"how many of them would you like to order?");
-                }else {
-                    next();
-                }
-              }else{
-                var msg="session cancelled due to wrong response.";
-                session.endConversation(msg);
-              }
+              //}
+  }
+  if(!order.quantity){
+    builder.Prompts.number(session,"how many of them would you like to order?");
+  }else {
+      next();
   }
 },
 function(session,results,next){
   var order = session.dialogData.order;
           if (results.response) {
-            if (isNaN(results.response)) {
-              var msg="session cancelled due to wrong response."
-              session.endConversation(msg);
-}
-else{
   order.quantity=results.response;
-  if(!order.date){
-    builder.Prompts.time(session,"when do you prefer your order to be delivered?");
-  }
-  else {
-      next();
-  }
 }
+if(!order.date){
+  builder.Prompts.time(session,"when do you prefer your order to be delivered?");
 }
+else {
+    next();
+  }
 },
 function(session,results){
   var order = session.dialogData.order;
