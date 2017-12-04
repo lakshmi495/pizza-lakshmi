@@ -69,14 +69,14 @@ bot.dialog("OrderPizza",[
               var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza"];
               if(array.indexOf(results.response)!=-1){
                 order.pizzakind=results.response;
-              }
-              else{
-                session.send("Enter valid reply");
+              }else{
+                var msg="session cancelled due to wrong response.";
+                session.endConversation(msg);
               }
   }
 
   if(!order.quantity){
-    builder.Prompts.text(session,"how many of them would you like to order?");
+    builder.Prompts.number(session,"how many of them would you like to order?");
   }
   else {
       next();
@@ -86,7 +86,8 @@ function(session,results,next){
   var order = session.dialogData.order;
           if (results.response) {
             if (isNaN(results.response)) {
-               session.send("Enter Valid reply");
+              var msg="session cancelled due to wrong response."
+              session.endConversation(msg);
 }
 else{
   order.quantity=results.response;
@@ -106,7 +107,9 @@ function(session,results){
     session.dialogData.time = builder.EntityRecognizer.resolveTime([results.response]);
     //order.date=session.dialogData.time;
        order.date=date.format(session.dialogData.time, 'MM/DD/YYYY');
+
   }
+
   session.send(`Order confirmed. Order details: <br/>Type: ${order.pizzakind} <br/>quantity: ${order.quantity} <br/> date:${order.date} `);
   session.endDialog();
 
@@ -129,31 +132,34 @@ bot.dialog("Order",[
   },
   function(session,results){
     var order = session.dialogData.order
+
             if (results.response) {
               var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza"];
               if(array.indexOf(results.response)!=-1){
                  pizzakind=results.response;
+                 builder.Prompts.number(session,"how many of them would you like to order?");
               }
               else{
-                session.send("Enter valid reply");
+                var msg="session cancelled due to wrong response."
+                session.endConversation(msg);
               }
   }
-
-    builder.Prompts.text(session,"how many of them would you like to order?");
 },
-function(session,results,next){
+function(session,results){
   var order = session.dialogData.order;
           if (results.response) {
             if (isNaN(results.response)) {
-               session.send("Enter Valid reply");
+              var msg="session cancelled due to wrong response."
+              session.endConversation(msg);
 }
 else{
    quantity=results.response;
+   builder.Prompts.time(session,"when do you prefer your order to be delivered?");
 }
 }
 
 
-  builder.Prompts.time(session,"when do you prefer your order to be delivered?");
+
 },
 function(session,results){
   var order = session.dialogData.order;
@@ -161,6 +167,10 @@ function(session,results){
     session.dialogData.time = builder.EntityRecognizer.resolveTime([results.response]);
     //order.date=session.dialogData.time;
      orderdate=date.format(session.dialogData.time, 'MM/DD/YYYY');
+  }
+  else{
+    var msg="session cancelled due to wrong response."
+    session.endConversation(msg);
   }
   session.send(`Order confirmed. Order details: <br/>Type: ${pizzakind} <br/>quantity: ${quantity} <br/> date:${orderdate} `);
   session.endDialog();
