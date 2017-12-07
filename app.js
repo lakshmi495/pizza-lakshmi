@@ -111,11 +111,7 @@ bot.dialog("OrderPizza",[
  session.endDialog();
   }
 ]).triggerAction({
-    matches: 'PizzaOrdering',
-    confirmPrompt: "This will cancel the order. Are you sure?"
-}).cancelAction('cancelOrder', "Order canceled.", {
-    matches: /^(cancel|nevermind)/i,
-    confirmPrompt: "Are you sure?"
+    matches: 'PizzaOrdering'
 });
 
 
@@ -174,9 +170,5 @@ bot.dialog('number',[
   session.beginDialog('OrderPizza',args_to_pass);
   }
 ]).triggerAction({
-    matches: 'quantity',
-    confirmPrompt: "This will cancel the Order. Are you sure?"
-}).cancelAction('cancelOrder', "Order canceled.", {
-    matches: /^(cancel|nevermind)/i,
-    confirmPrompt: "Are you sure?"
+    matches: 'quantity'
 });
