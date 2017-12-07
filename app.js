@@ -22,153 +22,161 @@ var bot = new builder.UniversalBot(connector, function (session) {
     session.beginDialog("Order");
 });
 
-var luisAppUrl = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/955d86a1-7f5e-49b9-b2b4-025448a466de?subscription-key=5c18ddf42e62417885b58f032272274d&verbose=true&timezoneOffset=0&q=';
+var luisAppUrl = `https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/955d86a1-7f5e-49b9-b2b4-025448a466de?subscription-key=5c18ddf42e62417885b58f032272274d&verbose=true&timezoneOffset=0&q=`;
 
 bot.recognizer(new builder.LuisRecognizer(luisAppUrl));
-
 bot.dialog("OrderPizza",[
   function(session,args,next){
+    console.log("args",args);
     var intent=args.intent;
     console.log("intent",intent);
-    var pizzakind=builder.EntityRecognizer.findEntity(intent.entities,'pizzaKind');
-    console.log("pizzakind : ",pizzakind);
-    var quantity=builder.EntityRecognizer.parseNumber(intent.entities,'number');
-    console.log("quantity : ",quantity);
-    var date=builder.EntityRecognizer.findEntity(intent.entities,'builtin.datetimeV2.date');
-    console.log("date : ",date);
-    console.log(intent);
+    if (pizzakind==null){
+    pizzakind=builder.EntityRecognizer.findEntity(intent.entities,'pizzaKind');}
+    console.log("pizzakind",pizzakind);
+    if(quantity==null){
+    quantity=builder.EntityRecognizer.findEntity(intent.entities,'builtin.number');}
+    console.log("quantity",quantity);
+    if(orderdate==null){
+    orderdate=builder.EntityRecognizer.findEntity(intent.entities,'builtin.datetimeV2.date');}
+    console.log("orderdate",orderdate);
     var order= session.dialogData.order ={
       pizzakind: pizzakind ? pizzakind.entity : null,
-      quantity: quantity ? quantity : null,
-      date : date ? date.resolution.values[0] : null
+      quantity: quantity ? quantity.entity : null,
+      orderdate : orderdate ? orderdate.resolution.values[0] : null
     }
-    console.log(order.pizzakind);
-    console.log(order.quantity);
-    console.log(order.date);
-    var obj =order.date;
-    if(obj){
-      var result = Object.keys(obj).map(function(key) {
-        return [ obj[key]];
-      });
-      console.log(result[2]);
-      order.date=result[2];
-    }
-/*if(order.pizzakind && order.quantity && order.date ){
-  session.send(`Order confirmed. Order details: <br/>Type: ${order.pizzakind} <br/>quantity: ${order.quantity} <br/> date:${result[2]} `);
-}*/
+    console.log("order.pizzakind",order.pizzakind);
+    console.log("order.quantity",order.quantity);
+    console.log("order.orderdate",order.orderdate);
+    var obj =order.orderdate;
+        if(obj){
+          var result = Object.keys(obj).map(function(key) {
+            return [ obj[key]];
+          });
+          console.log("result",result[2]);
+          order.orderdate=result[2];
+          console.log("orderdate",order.orderdate);
+        }
+
     if(!order.pizzakind){
       builder.Prompts.text(session,"sure, what type of pizza would you want me to order?");
+
     }else{
       next();
     }
-
   },
   function(session,results,next){
-    var order = session.dialogData.order
-            if (results.response) {
-              //var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza","frozen pizza","spicy chicken","large","small"];
-              //if(array.indexOf(results.response)!=-1){
-                order.pizzakind=results.response;
-              //}
-  }
-  if(!order.quantity){
-    builder.Prompts.number(session,"how many of them would you like to order?");
-  }else {
-      next();
-  }
-},
-function(session,results,next){
-  var order = session.dialogData.order;
-          if (results.response) {
-  order.quantity=results.response;
-}
-if(!order.date){
-  builder.Prompts.time(session,"when do you prefer your order to be delivered?");
-}
-else {
+
+            if(results.response){
+              session.beginDialog('kind');
+            }else{
+              next();
+            }
+          },
+          function(session,results,next){
+            var order= session.dialogData.order
+            if(!order.quantity){
+              builder.Prompts.number(session,"how many of them would you like to order?");
+            }else{
+              next();
+            }
+          },
+  function(session,results,next){
+    var order = session.dialogData.order;
+    console.log("number",results.response);
+    if(results.response){
+      session.beginDialog('number');
+    }
+  else{
     next();
+  }},
+    function(session,results,next){
+      var order = session.dialogData.order;
+      if(!order.orderdate){
+        builder.Prompts.time(session,"when do you prefer your order to be delivered?");
+      }else{
+        next();
+      }
+    },
+  function(session,results){
+    var order = session.dialogData.order;
+    console.log("time",results.response);
+    if(results.response){
+      session.dialogData.time = builder.EntityRecognizer.resolveTime([results.response]);
+      order.orderdate=date.format(session.dialogData.time, 'MM/DD/YYYY');
+    }
+    session.send(`Order confirmed. Order details: <br/>Type: ${order.pizzakind} <br/>quantity: ${order.quantity} <br/> date:${order.orderdate} `);
+    pizzakind=null;
+    quantity=null;
+    orderdate=null;
+ session.endDialog();
   }
-},
-function(session,results){
-  var order = session.dialogData.order;
-  if (results.response){
-    session.dialogData.time = builder.EntityRecognizer.resolveTime([results.response]);
-    //order.date=session.dialogData.time;
-       order.date=date.format(session.dialogData.time, 'MM/DD/YYYY');
-
-  }
-
-  session.send(`Order confirmed. Order details: <br/>Type: ${order.pizzakind} <br/>quantity: ${order.quantity} <br/> date:${order.date} `);
-  session.endDialog();
-
-}
 ]).triggerAction({
     matches: 'PizzaOrdering',
-    confirmPrompt: "This will cancel the ordering. Are you sure?"
-}).cancelAction('cancelpizza', "pizza order canceled.", {
+    confirmPrompt: "This will cancel the order. Are you sure?"
+}).cancelAction('cancelOrder', "Order canceled.", {
     matches: /^(cancel|nevermind)/i,
     confirmPrompt: "Are you sure?"
 });
 
 
-
-bot.dialog("Order",[
-  function(session){
-    var pizzakind=null;
-    var quantity=null;
-    var orderdate=null;
-      builder.Prompts.text(session,"okay, what kind of pizza would you like?");
-  },
-  function(session,results){
-    var order = session.dialogData.order
-
-            if (results.response) {
-              var array=["veg","chicken","cheese","double cheese","margarita","panner","fresh pan pizza"];
-              if(array.indexOf(results.response)!=-1){
-                 pizzakind=results.response;
-                 builder.Prompts.number(session,"how many of them would you like to order?");
-              }
-              else{
-                var msg="session cancelled due to wrong response."
-                session.endConversation(msg);
-              }
+bot.dialog('kind',[
+  function(session,args){
+    console.log("argskind",args);
+    var intent=args.intent;
+    console.log("kindintent",intent);
+    var kindpizza=builder.EntityRecognizer.findEntity(intent.entities,'pizzaKind');
+    console.log("kindpizza",kindpizza);
+    var order= session.dialogData.order ={
+      kindpizza: kindpizza ? kindpizza.entity : null
+    }
+    console.log("order.kindpizza",order.kindpizza);
+    var args_to_pass = { action: '*:kind',
+      intent:
+       {
+         intent: 'PizzaOrdering',
+         entities: [ { entity: order.kindpizza,
+           type: 'pizzaKind',
+           startIndex: 9,
+           endIndex: 11,
+         /*resolution: { values: order.kindpizza }*/ } ],
+         compositeEntities: [] },
+      libraryName: '*' };
+session.endDialogWithResult({response:order.kindpizza });
+session.beginDialog('OrderPizza',args_to_pass);
   }
-},
-function(session,results){
-  var order = session.dialogData.order;
-          if (results.response) {
-            if (isNaN(results.response)) {
-              var msg="session cancelled due to wrong response."
-              session.endConversation(msg);
-}
-else{
-   quantity=results.response;
-   builder.Prompts.time(session,"when do you prefer your order to be delivered?");
-}
-}
-
-
-
-},
-function(session,results){
-  var order = session.dialogData.order;
-  if (results.response){
-    session.dialogData.time = builder.EntityRecognizer.resolveTime([results.response]);
-    //order.date=session.dialogData.time;
-     orderdate=date.format(session.dialogData.time, 'MM/DD/YYYY');
-  }
-  else{
-    var msg="session cancelled due to wrong response."
-    session.endConversation(msg);
-  }
-  session.send(`Order confirmed. Order details: <br/>Type: ${pizzakind} <br/>quantity: ${quantity} <br/> date:${orderdate} `);
-  session.endDialog();
-
-}
 ]).triggerAction({
-    matches: 'PizzaOrdering',
-    confirmPrompt: "This will cancel the ordering. Are you sure?"
-}).cancelAction('cancelpizza', "pizza order canceled.", {
+    matches: 'values'
+});
+
+bot.dialog('number',[
+  function(session,args){
+
+    console.log("argskind",args);
+    var intent=args.intent;
+    console.log("kindintent",intent);
+    var quantity=builder.EntityRecognizer.findEntity(intent.entities,'builtin.number');
+    console.log("quantity",quantity);
+    var order= session.dialogData.order ={
+      quantity: quantity ? quantity.entity : null
+    }
+    console.log("order.quantity",order.quantity);
+    var args_to_pass = { action: '*:number',
+      intent:
+       {
+         intent: 'PizzaOrdering',
+         entities: [ { entity: order.quantity,
+           type: 'builtin.number',
+           startIndex: 9,
+           endIndex: 11 } ],
+         compositeEntities: [] },
+      libraryName: '*' };
+  session.endDialogWithResult({response:order.quantity });
+  session.beginDialog('OrderPizza',args_to_pass);
+  }
+]).triggerAction({
+    matches: 'quantity',
+    confirmPrompt: "This will cancel the Order. Are you sure?"
+}).cancelAction('cancelOrder', "Order canceled.", {
     matches: /^(cancel|nevermind)/i,
     confirmPrompt: "Are you sure?"
 });
